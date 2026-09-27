@@ -1,0 +1,16 @@
+# Normalize all text files to LF in the repo, regardless of each
+# contributor's local core.autocrlf setting.
+* text=auto eol=lf
+
+# Shell scripts must keep LF endings — a stray \r breaks execution on
+# Linux/Mac shells, which would silently break the Husky pre-commit hook.
+.husky/* text eol=lf
+
+# Windows batch files (none currently in this project, but if any get added)
+# should keep CRLF, since cmd.exe expects it.
+*.bat text eol=crlf
+
+# Binary files: never touch line endings, and don't diff them as text.
+*.png binary
+*.jpg binary
+*.ico binary
