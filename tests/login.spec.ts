@@ -6,8 +6,8 @@ import loginData from '../data/login.data.json';
 // falling back to the committed demo credentials otherwise. This is the same
 // pattern you'd use for real secrets — just backed by Azure Key Vault /
 // pipeline variables instead of a committed JSON file.
-const username = process.env.TEST_USERNAME ?? loginData.username;
-const password = process.env.TEST_PASSWORD ?? loginData.password;
+const username = process.env.TEST_USERNAME || loginData.username;
+const password = process.env.TEST_PASSWORD || loginData.password;
 
 test.describe('Login Page', () => {
     let homePage: HomePage;

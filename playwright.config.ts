@@ -33,7 +33,7 @@ export default defineConfig({
      * Falls back to the public demo site if BASE_URL isn't set (locally via
      * .env, or in CI via a pipeline variable), so pointing this at a
      * staging/prod environment is a config change, not a code change. */
-    baseURL: process.env.BASE_URL ?? 'https://www.saucedemo.com',
+    baseURL: process.env.BASE_URL || 'https://www.saucedemo.com',
     testIdAttribute: 'data-test',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
