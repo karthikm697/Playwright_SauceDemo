@@ -1,0 +1,52 @@
+# Azure Pipelines definition for running the Playwright test suite.
+# Place this file at the root of the repo (same level as package.json).
+# In Azure DevOps: Pipelines -> New pipeline -> pick your repo -> "Existing Azure Pipelines YAML file".
+
+trigger:
+  branches:
+    include:
+      - main
+      - master
+
+pr:
+  branches:
+    include:
+      - main
+      - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '24.x' # Active LTS as of 2026; avoid pinning to a "Current" (odd/non-LTS) line in CI
+    displayName: 'Install Node.js'
+
+  - script: npm ci
+    displayName: 'Install dependencies'
+
+  - script: npx playwright install --with-deps
+    displayName: 'Install Playwright browsers'
+
+  - script: npx playwright test
+    displayName: 'Run Playwright tests'
+    env:
+      CI: 'true'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results to Azure Tests tab'
+    condition: succeededOrFailed() # run even if the test step above failed
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-results/junit.xml'
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Playwright HTML report'
+    condition: succeededOrFailed()
+    inputs:
+      targetPath: 'playwright-report'
+      artifact: 'playwright-report'
+      publishLocation: 'pipeline'
