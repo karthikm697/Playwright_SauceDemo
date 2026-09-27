@@ -27,9 +27,6 @@ steps:
     displayName: 'Run Playwright tests'
     env:
       CI: 'true'
-      BASE_URL: $(BASE_URL)
-      TEST_USERNAME: $(TEST_USERNAME)
-      TEST_PASSWORD: $(TEST_PASSWORD)
 
   - task: PublishTestResults@2
     displayName: 'Publish test results to Azure Tests tab'
