@@ -9,6 +9,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["tests/**/*.ts", "pages/**/*.ts", "data/**/*.json", "playwright.config.ts"],
+  "include": [
+    "tests/**/*.ts",
+    "pages/**/*.ts",
+    "utils/**/*.ts",
+    "data/**/*.json",
+    "playwright.config.ts"
+  ],
   "exclude": ["node_modules"]
 }

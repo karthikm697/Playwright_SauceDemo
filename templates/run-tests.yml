@@ -1,0 +1,49 @@
+parameters:
+  - name: testCommand
+    type: string
+    default: 'npx playwright test'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '24.x' # Active LTS as of 2026
+    displayName: 'Install Node.js'
+
+  - task: Cache@2
+    displayName: 'Cache npm packages'
+    inputs:
+      key: 'npm | "$(Agent.OS)" | package-lock.json'
+      restoreKeys: |
+        npm | "$(Agent.OS)"
+      path: $(npm_config_cache)
+
+  - script: npm ci
+    displayName: 'Install dependencies'
+
+  - script: npx playwright install --with-deps
+    displayName: 'Install Playwright browsers'
+
+  - script: ${{ parameters.testCommand }}
+    displayName: 'Run Playwright tests'
+    env:
+      CI: 'true'
+      BASE_URL: $(BASE_URL)
+      TEST_USERNAME: $(TEST_USERNAME)
+      TEST_PASSWORD: $(TEST_PASSWORD)
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results to Azure Tests tab'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-results/junit.xml'
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Playwright HTML report'
+    condition: succeededOrFailed()
+    inputs:
+      targetPath: 'playwright-report'
+      artifact: 'playwright-report-$(Agent.JobName)-$(Build.BuildId)'
+      publishLocation: 'pipeline'

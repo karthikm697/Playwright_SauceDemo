@@ -1,0 +1,47 @@
+# Azure Pipelines definition for running the Playwright test suite.
+# - Pull requests run only the @smoke-tagged tests (fast PR gate).
+# - Pushes to main/master and a nightly schedule run the full suite.
+
+trigger:
+  branches:
+    include:
+      - main
+      - master
+
+pr:
+  branches:
+    include:
+      - main
+      - master
+
+schedules:
+  - cron: '0 2 * * *' # 02:00 UTC nightly
+    displayName: 'Nightly full regression'
+    branches:
+      include:
+        - main
+    always: true # run even if nothing changed since the last run
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  npm_config_cache: $(Pipeline.Workspace)/.npm
+  isPR: $[eq(variables['Build.Reason'], 'PullRequest')]
+
+jobs:
+  - job: SmokeTests
+    displayName: 'Smoke tests (PR gate)'
+    condition: eq(variables.isPR, true)
+    steps:
+      - template: templates/run-tests.yml
+        parameters:
+          testCommand: 'npx playwright test --grep @smoke'
+
+  - job: FullRegression
+    displayName: 'Full regression suite'
+    condition: ne(variables.isPR, true)
+    steps:
+      - template: templates/run-tests.yml
+        parameters:
+          testCommand: 'npx playwright test'

@@ -4,9 +4,9 @@ import { defineConfig, devices } from '@playwright/test';
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -29,8 +29,11 @@ export default defineConfig({
     : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'https://www.saucedemo.com', // FIX: was 'saucdemo.com' (typo) -> caused ERR_NAME_NOT_RESOLVED
+    /* Base URL to use in actions like `await page.goto('')`.
+     * Falls back to the public demo site if BASE_URL isn't set (locally via
+     * .env, or in CI via a pipeline variable), so pointing this at a
+     * staging/prod environment is a config change, not a code change. */
+    baseURL: process.env.BASE_URL ?? 'https://www.saucedemo.com',
     testIdAttribute: 'data-test',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',

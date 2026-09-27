@@ -1,6 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { HomePage } from '../pages/home.page';
-import loginData from '../data/login.data.json'; // FIX: this file existed but was never imported/used
+import loginData from '../data/login.data.json';
+
+// Env vars win when set (locally via .env, in CI via a pipeline variable),
+// falling back to the committed demo credentials otherwise. This is the same
+// pattern you'd use for real secrets — just backed by Azure Key Vault /
+// pipeline variables instead of a committed JSON file.
+const username = process.env.TEST_USERNAME ?? loginData.username;
+const password = process.env.TEST_PASSWORD ?? loginData.password;
 
 test.describe('Login Page', () => {
     let homePage: HomePage;
@@ -10,19 +17,21 @@ test.describe('Login Page', () => {
         await homePage.goTo('/');
     });
 
-    test('should display the login page', async () => {
+    // @smoke: fast, high-value checks that gate every PR. Keep this tag on
+    // only the handful of tests that must never break, not the whole suite.
+    test('should display the login page @smoke', async () => {
         await homePage.expectLoginPage();
     });
 
     test('should show an error when username is missing', async () => {
-        await homePage.loginWithoutUsername(loginData.password);
+        await homePage.loginWithoutUsername(password);
         await homePage.clickLoginButton();
 
         await expect(homePage.locatorAlertError).toBeVisible();
     });
 
     test('should show an error when password is missing', async () => {
-        await homePage.loginWithoutPassword(loginData.username);
+        await homePage.loginWithoutPassword(username);
         await homePage.clickLoginButton();
 
         await expect(homePage.locatorAlertError).toBeVisible();
@@ -36,24 +45,19 @@ test.describe('Login Page', () => {
     });
 
     test('should not show an error before submitting the form', async () => {
-        await homePage.fillLoginForm(loginData.username, loginData.password);
+        await homePage.fillLoginForm(username, password);
 
         await expect(homePage.locatorAlertError).not.toBeVisible();
     });
 
-    test('should log in successfully with valid credentials', async ({ page }) => {
-        await homePage.fillLoginForm(loginData.username, loginData.password);
+    test('should log in successfully with valid credentials @smoke', async ({ page }) => {
+        await homePage.fillLoginForm(username, password);
         await homePage.clickLoginButton();
 
-        // FIX: was `not.toHaveURL('/')`, which would also pass on an unrelated
-        // redirect/error. Assert the actual post-login page instead.
         await expect(page).toHaveURL('/inventory.html');
     });
 
     test('visual regression - login page', async () => {
-        // FIX: dropped the arbitrary waitFor(500) — Playwright's goto() already
-        // waits for the load event, and toHaveScreenshot() has its own retry/wait
-        // logic, so a fixed timeout here only adds flakiness risk, not stability.
         await homePage.expectScreenshot('login-page');
     });
 });
